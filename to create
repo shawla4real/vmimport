@@ -1,0 +1,97 @@
+** in mobaxterm.. vi crole-policy.json and copy and paste the link below
+**change the s3 bucket name to your own s3 bucket name
+
+vi role-policy.json
+
+{
+   "Version": "2012-10-17",
+   "Statement": [
+      {
+         "Effect": "Allow",
+         "Action": [
+            "s3:ListBucket",
+            "s3:GetBucketLocation"
+         ],
+         "Resource": [
+            "arn:aws:s3:::testingclass45"
+         ]
+      },
+      {
+         "Effect": "Allow",
+         "Action": [
+            "s3:GetObject"
+         ],
+         "Resource": [
+            "arn:aws:s3:::testingclass45/*"
+         ]
+      },
+      {
+         "Effect": "Allow",
+         "Action":[
+            "ec2:ModifySnapshotAttribute",
+            "ec2:CopySnapshot",
+            "ec2:RegisterImage",
+            "ec2:Describe*"
+         ],
+         "Resource": "*"
+      }
+   ]
+}
+ 
+=========================================================================================
+** in mobaxterm.. vi trust-policy.json and copy and paste the link below
+** do not change anything here
+
+vi trust-policy.json
+
+{
+   "Version": "2012-10-17",
+   "Statement": [
+      {
+         "Effect": "Allow",
+         "Principal": { "Service": "vmie.amazonaws.com" },
+         "Action": "sts:AssumeRole",
+         "Condition": {
+            "StringEquals":{
+               "sts:ExternalId": "vmimport"
+            }
+         }
+      }
+   ]
+}
+
+=======================================================================================
+** in mobaxterm.. vi containers.json and copy and paste the link below
+** change s3 bucket name and change the .ova file to whatever you named your .ova** in mobaxterm.. vi containers.json and copy and paste the link below
+vi containers.json
+
+[
+  {
+    "Description": "Centos 7 OVA",
+    "Format": "ova",
+    "UserBucket": {
+        "S3Bucket": "testingclass45",
+        "S3Key": "server1.ova"
+    }
+}]
+=======================================================================================
+
+
+Run the two commands as follows, to create role and policy that will allow the import from s3
+
+1. # aws iam create-role --role-name vmimport --assume-role-policy-document file://trust-policy.json
+2. # aws iam put-role-policy --role-name vmimport --policy-name vmimport --policy-document file://role-policy.json
+
+
+=======================================================================================================
+use the below command to import your ova file
+
+aws ec2 import-image --description "Myimage" --disk-containers file://containers.json 
+===================================================================================================
+To check the progress of your import run.copy ami id from the above command run.. 
+
+aws ec2 describe-import-image-tasks --import-task-ids import-ami-072b8cc2ffdede617
+=======================================================================================================
+
+
+
